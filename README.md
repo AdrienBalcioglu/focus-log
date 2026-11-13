@@ -2,6 +2,8 @@
 
 A focus timer that asks what you got done, and turns the answers into a log of your day.
 
+**[Try it live](https://adrienbalcioglu.github.io/focus-log/)**
+
 ## Features
 
 - 25, 50, 15 minutes or a custom duration, with pause
