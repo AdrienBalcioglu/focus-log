@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Focus Log</title>
+<style>:root{--bg:#f7f7f5;--panel:#fff;--ink:#1c1c1a;--muted:#6b6b66;--line:#e3e3de;--accent:#3d5afe;--accent-ink:#fff;--good:#1a7f4b;--bad:#b3261e;--warn:#9a6700;--soft:#eef0ff;--radius:10px;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--panel:#1d1d1b;--ink:#ececE6;--muted:#9a9a93;--line:#30302c;--accent:#8c9eff;--accent-ink:#11122b;--good:#5fd39a;--bad:#ff8a80;--warn:#e3b341;--soft:#23264a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1080px;margin:0 auto;padding:28px 16px 64px}
+header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+h1{font-size:24px;margin:0;letter-spacing:-.01em}
+h2{font-size:15px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+p.lead{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.grid{display:grid;gap:16px}
+@media(min-width:820px){.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:repeat(3,1fr)}.side{grid-template-columns:340px 1fr}}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+textarea{min-height:120px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.field{margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-weight:600;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 14px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.ghost{border-color:transparent;color:var(--muted);padding:4px 8px}
+button:disabled{opacity:.5;cursor:not-allowed}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td input{padding:5px 7px}
+.scroll{overflow-x:auto}
+.stat{font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat small{display:block;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0}
+.muted{color:var(--muted)}.good{color:var(--good)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--accent)}
+.out{white-space:pre-wrap;word-wrap:break-word;font-size:14.5px;min-height:120px}
+.out.mono,code{font-family:var(--mono);font-size:13px}
+.note{font-size:13px;color:var(--muted)}
+footer{margin-top:28px;font-size:13px;color:var(--muted)}
+footer a{color:inherit}
+
+.clock{font-size:76px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;text-align:center;line-height:1.1}
+.center{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.track{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:14px 0}
+.track div{height:100%;background:var(--accent);width:0}
+.day{margin-bottom:14px}.day h3{font-size:14px;margin:0 0 6px}
+.entry{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.entry time{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.entry span{flex:1}
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div>
+      <h1>Focus Log</h1>
+      <p class="lead">A focus timer that asks one question when it rings: what did you get done? The answers become your log of the day.</p>
+    </div>
+  </header>
+
+  <div class="grid cols-2">
+    <section class="panel">
+      <div class="field"><label for="intent">What will you work on?</label><input id="intent" placeholder="Draft the pricing page"></div>
+      <div class="clock" id="clock" aria-live="off">25:00</div>
+      <div class="track"><div id="bar"></div></div>
+      <div class="center" id="presets">
+        <button data-min="25" class="primary">25 min</button><button data-min="50">50 min</button><button data-min="15">15 min</button>
+        <input id="custom" type="number" min="1" max="180" placeholder="min" style="width:76px" aria-label="Custom duration in minutes">
+      </div>
+      <div class="center" style="margin-top:12px">
+        <button id="start" class="primary">Start</button><button id="pause" disabled>Pause</button><button id="stop" disabled>End now</button>
+      </div>
+      <div id="done" hidden style="margin-top:16px">
+        <div class="field"><label for="result">Time is up. What did you get done?</label><input id="result"></div>
+        <div class="row"><button id="log" class="primary">Add to the log</button><button id="skip" class="ghost">Skip</button></div>
+      </div>
+      <p id="status" class="note" role="status" style="text-align:center"></p>
+    </section>
+
+    <section class="panel">
+      <div class="row" style="justify-content:space-between;margin-bottom:8px">
+        <h2 style="margin:0">Log</h2>
+        <span class="row"><button id="copy">Copy today</button><button id="clear" class="ghost">Clear all</button></span>
+      </div>
+      <p id="total" class="note"></p>
+      <div id="days"></div>
+    </section>
+  </div>
+  <footer>MIT license · © 2026 Adrien Balcioglu · Runs entirely in your browser: no account, no API key, no server.</footer>
+</main>
+<script>
+const KEY = 'focus-log-v1';
+const $ = (id) => document.getElementById(id);
+let state = load();
+function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.entries)) return s; } catch {} return { minutes: 25, entries: [], run: null }; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} }
+const today = () => new Date().toLocaleDateString('en-CA');
+const hhmm = (t) => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+// A run stores its end time, so the countdown stays right if the tab sleeps or reloads.
+const remaining = () => (!state.run ? state.minutes * 60000 : state.run.paused ? state.run.left : Math.max(0, state.run.end - Date.now()));
+
+function beep() {
+  try {
+    const ctx = new AudioContext(); const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.2, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+    o.start(); o.stop(ctx.currentTime + 1.2);
+  } catch {}
+}
+function finish() {
+  const worked = Math.round((state.run.total - remaining()) / 60000);
+  state.pending = { start: state.run.started, minutes: Math.max(1, worked), intent: $('intent').value.trim() };
+  state.run = null; save(); beep();
+  if ('Notification' in window && Notification.permission === 'granted') new Notification('Focus session finished', { body: 'What did you get done?' });
+  paint(); $('result').value = state.pending.intent; $('result').focus(); $('result').select();
+}
+function paint() {
+  const ms = remaining(), s = Math.ceil(ms / 1000);
+  const text = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  $('clock').textContent = text;
+  const total = state.run ? state.run.total : state.minutes * 60000;
+  $('bar').style.width = (state.run ? (1 - ms / total) * 100 : 0) + '%';
+  document.title = state.run && !state.run.paused ? `${text} · Focus Log` : 'Focus Log';
+  $('start').disabled = !!state.run || !!state.pending; $('pause').disabled = !state.run; $('stop').disabled = !state.run;
+  $('pause').textContent = state.run?.paused ? 'Resume' : 'Pause';
+  $('done').hidden = !state.pending;
+  document.querySelectorAll('#presets button').forEach((b) => b.classList.toggle('primary', Number(b.dataset.min) === state.minutes));
+}
+function tick() { if (state.run && !state.run.paused && remaining() <= 0) finish(); else paint(); }
+
+function renderLog() {
+  const days = {}; state.entries.forEach((e) => { (days[e.day] ??= []).push(e); });
+  const box = $('days'); box.innerHTML = '';
+  Object.keys(days).sort().reverse().forEach((day) => {
+    const wrap = document.createElement('div'); wrap.className = 'day';
+    const h = document.createElement('h3'); const mins = days[day].reduce((s, e) => s + e.minutes, 0);
+    h.textContent = `${day === today() ? 'Today' : new Date(day + 'T12:00').toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'short' })} · ${mins} min`;
+    wrap.append(h);
+    days[day].forEach((e) => {
+      const row = document.createElement('div'); row.className = 'entry';
+      const t = document.createElement('time'); t.textContent = `${hhmm(e.start)} · ${e.minutes} min`;
+      const text = document.createElement('span'); text.textContent = e.text;
+      const del = document.createElement('button'); del.className = 'ghost'; del.textContent = '✕'; del.dataset.del = e.start; del.setAttribute('aria-label', 'Delete entry');
+      row.append(t, text, del); wrap.append(row);
+    });
+    box.append(wrap);
+  });
+  const mine = state.entries.filter((e) => e.day === today());
+  $('total').textContent = mine.length ? `Today: ${mine.length} session${mine.length > 1 ? 's' : ''}, ${mine.reduce((s, e) => s + e.minutes, 0)} minutes of focus.` : 'No session logged today yet.';
+}
+
+$('presets').addEventListener('click', (e) => { if (!e.target.dataset.min || state.run) return; state.minutes = Number(e.target.dataset.min); $('custom').value = ''; save(); paint(); });
+$('custom').addEventListener('change', (e) => { const m = Math.round(Number(e.target.value)); if (state.run || !(m >= 1 && m <= 180)) return; state.minutes = m; save(); paint(); });
+$('start').addEventListener('click', () => {
+  const total = state.minutes * 60000;
+  state.run = { started: Date.now(), end: Date.now() + total, total, paused: false, left: total }; save(); paint();
+  if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+});
+$('pause').addEventListener('click', () => {
+  if (state.run.paused) { state.run.end = Date.now() + state.run.left; state.run.paused = false; }
+  else { state.run.left = remaining(); state.run.paused = true; }
+  save(); paint();
+});
+$('stop').addEventListener('click', finish);
+function close(text) {
+  if (text) state.entries.push({ day: new Date(state.pending.start).toLocaleDateString('en-CA'), start: state.pending.start, minutes: state.pending.minutes, text });
+  state.pending = null; save(); $('intent').value = ''; paint(); renderLog();
+}
+$('log').addEventListener('click', () => close($('result').value.trim() || '(no note)'));
+$('result').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('log').click(); });
+$('skip').addEventListener('click', () => close(''));
+$('days').addEventListener('click', (e) => { if (!e.target.dataset.del) return; state.entries = state.entries.filter((x) => String(x.start) !== e.target.dataset.del); save(); renderLog(); });
+$('copy').addEventListener('click', async () => {
+  const mine = state.entries.filter((e) => e.day === today());
+  if (!mine.length) { $('status').textContent = 'Nothing logged today.'; return; }
+  const text = `Focus log, ${today()}\n` + mine.map((e) => `- ${hhmm(e.start)} (${e.minutes} min) ${e.text}`).join('\n');
+  try { await navigator.clipboard.writeText(text); $('status').textContent = "Today's log copied."; } catch { $('status').textContent = 'The clipboard is not available here.'; }
+});
+$('clear').addEventListener('click', () => { if (confirm('Delete the whole log?')) { state.entries = []; save(); renderLog(); } });
+
+if (state.pending) $('result').value = state.pending.intent || '';
+paint(); renderLog(); setInterval(tick, 250);
+</script>
+</body>
+</html>
