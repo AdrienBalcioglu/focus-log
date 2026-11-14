@@ -2,7 +2,7 @@
 
 A focus timer that asks what you got done, and turns the answers into a log of your day.
 
-**[Try it live](https://adrienbalcioglu.github.io/focus-log/)**
+**[Website](https://adrienbalcioglu.github.io/focus-log/about.html)** · **[Open the app](https://adrienbalcioglu.github.io/focus-log/)**
 
 ## Features
 
